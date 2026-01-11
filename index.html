@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro de Eventos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .timer-display {
+            font-size: 64px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .event-list {
+            margin-top: 20px;
+        }
+
+        .event-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .event-header {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .event-time {
+            color: #6b7280;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .event-clock {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .no-events {
+            text-align: center;
+            color: #9ca3af;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .controls .btn {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 480px) {
+            .timer-display {
+                font-size: 48px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#667eea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>⏱️ Cronómetro de Eventos</h1>
+            
+            <div id="setupView">
+                <div class="input-group">
+                    <label for="eventName">Nombre del evento a registrar (opcional):</label>
+                    <input type="text" id="eventName" placeholder="Escribe aquí...">
+                </div>
+                <button class="btn btn-primary" onclick="startTimer()">Iniciar Cronómetro</button>
+            </div>
+
+            <div id="timerView" class="hidden">
+                <div class="timer-display" id="timerDisplay">00:00:00</div>
+                
+                <div class="input-group">
+                    <label for="quickEventName">Nombre del evento:</label>
+                    <input type="text" id="quickEventName" placeholder="Escribe el nombre del evento...">
+                </div>
+                
+                <button class="btn btn-success" id="logEventBtn" onclick="logEvent()">
+                    Registrar Evento
+                </button>
+
+                <div class="controls">
+                    <button class="btn btn-danger" onclick="stopTimer()">Detener</button>
+                    <button class="btn btn-secondary" onclick="resetTimer()">Resetear</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="eventsCard">
+            <h2 style="color: #667eea; margin-bottom: 20px;">📋 Eventos Registrados</h2>
+            <div id="eventsList"></div>
+            <button class="btn btn-secondary" onclick="clearHistory()" id="clearBtn">Limpiar Historial</button>
+        </div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let currentEventName = '';
+        let events = [];
+
+        // Cargar eventos guardados al iniciar
+        window.onload = function() {
+            loadEvents();
+            updateEventsList();
+        };
+
+        function startTimer() {
+            const nameInput = document.getElementById('eventName');
+            const initialEventName = nameInput.value.trim();
+
+            document.getElementById('setupView').classList.add('hidden');
+            document.getElementById('timerView').classList.remove('hidden');
+            
+            // Si ingresó un nombre inicial, ponerlo en el campo rápido
+            if (initialEventName) {
+                document.getElementById('quickEventName').value = initialEventName;
+            }
+            
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(updateTimer, 10);
+            isRunning = true;
+        }
+
+        function updateTimer() {
+            elapsedTime = Date.now() - startTime;
+            displayTime(elapsedTime);
+        }
+
+        function displayTime(time) {
+            const hours = Math.floor(time / 3600000);
+            const minutes = Math.floor((time % 3600000) / 60000);
+            const seconds = Math.floor((time % 60000) / 1000);
+            const milliseconds = Math.floor((time % 1000) / 10);
+
+            const display = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function logEvent() {
+            if (!isRunning) return;
+
+            const eventNameInput = document.getElementById('quickEventName');
+            const eventName = eventNameInput.value.trim();
+            
+            if (!eventName) {
+                alert('Por favor ingresa un nombre para el evento');
+                return;
+            }
+
+            const now = new Date();
+            const event = {
+                name: eventName,
+                elapsed: elapsedTime,
+                timestamp: now.toLocaleTimeString('es-ES')
+            };
+
+            events.push(event);
+            saveEvents();
+            updateEventsList();
+
+            // Limpiar el campo para el siguiente evento
+            eventNameInput.value = '';
+            eventNameInput.focus();
+
+            // Feedback visual
+            const btn = document.getElementById('logEventBtn');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            if (!confirm('¿Estás seguro? Esto borrará el cronómetro y todos los eventos registrados.')) {
+                return;
+            }
+            
+            clearInterval(timerInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            displayTime(0);
+            events = [];
+            saveEvents();
+            updateEventsList();
+            
+            document.getElementById('setupView').classList.remove('hidden');
+            document.getElementById('timerView').classList.add('hidden');
+            document.getElementById('eventName').value = '';
+        }
+
+        function formatElapsedTime(ms) {
+            const hours = Math.floor(ms / 3600000);
+            const minutes = Math.floor((ms % 3600000) / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+
+            return String(hours).padStart(2, '0') + ':' +
+                   String(minutes).padStart(2, '0') + ':' +
+                   String(seconds).padStart(2, '0');
+        }
+
+        function updateEventsList() {
+            const listDiv = document.getElementById('eventsList');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            if (events.length === 0) {
+                listDiv.innerHTML = '<div class="no-events">No hay eventos registrados</div>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            clearBtn.style.display = 'block';
+            
+            let html = '';
+            events.forEach((event, index) => {
+                html += `
+                    <div class="event-item">
+                        <div class="event-header">#${index + 1} - ${event.name}</div>
+                        <div class="event-time">⏱️ ${formatElapsedTime(event.elapsed)}</div>
+                        <div class="event-clock">🕐 ${event.timestamp}</div>
+                    </div>
+                `;
+            });
+            
+            listDiv.innerHTML = html;
+        }
+
+        function clearHistory() {
+            if (confirm('¿Estás seguro de que quieres borrar todo el historial?')) {
+                events = [];
+                saveEvents();
+                updateEventsList();
+            }
+        }
+
+        function saveEvents() {
+            localStorage.setItem('timerEvents', JSON.stringify(events));
+        }
+
+        function loadEvents() {
+            const saved = localStorage.getItem('timerEvents');
+            if (saved) {
+                events = JSON.parse(saved);
+            }
+        }
+    </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(() => console.log('Service Worker registrado'))
+      .catch(err => console.error('Error SW', err));
+  });
+}
+</script>
+
+</body>
+</html>
